@@ -1,19 +1,26 @@
-#!/bin/bash
+source aws_credentials.sh
+mkdir -p ~/.github
+echo "aws-bootstrap" > ~/.github/aws-bootstrap-repo
+echo "<username>" > ~/.github/aws-bootstrap-owner
+echo "<Github_Token>" > ~/.github/aws-bootstrap-access-token
 
-STACK_NAME=awsbootstrap 
-REGION=ap-south-1
+STACK_NAME=awsbootstrap
+REGION=us-east-1 
 CLI_PROFILE=awsbootstrap
 EC2_INSTANCE_TYPE=t2.micro 
-AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile awsbootstrap --query "Account" --output text`
-CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID" 
 
 GH_ACCESS_TOKEN=$(cat ~/.github/aws-bootstrap-access-token)
 GH_OWNER=$(cat ~/.github/aws-bootstrap-owner)
 GH_REPO=$(cat ~/.github/aws-bootstrap-repo)
 GH_BRANCH=master
 
+AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile awsbootstrap --query "Account" --output text`
+CODEPIPELINE_BUCKET="$STACK_NAME-$REGION-codepipeline-$AWS_ACCOUNT_ID" 
+
+echo $CODEPIPELINE_BUCKET
+
 # Deploys static resources
-echo -e "\n\n=========== Deploying setup.yml ==========="
+echo "\n\n=========== Deploying setup.yml ==========="
 aws cloudformation deploy \
   --region $REGION \
   --profile $CLI_PROFILE \
@@ -24,7 +31,7 @@ aws cloudformation deploy \
   --parameter-overrides CodePipelineBucket=$CODEPIPELINE_BUCKET
 
 # Deploy the CloudFormation template
-echo -e "\n\n=========== Deploying main.yml ==========="
+echo "\n\n=========== Deploying main.yml ==========="
 aws cloudformation deploy \
   --region $REGION \
   --profile $CLI_PROFILE \
@@ -39,3 +46,10 @@ aws cloudformation deploy \
     GitHubBranch=$GH_BRANCH \
     GitHubPersonalAccessToken=$GH_ACCESS_TOKEN \
     CodePipelineBucket=$CODEPIPELINE_BUCKET
+
+    # If the deploy succeeded, show the DNS name of the created instance
+if [ $? -eq 0 ]; then
+  aws cloudformation list-exports \
+    --profile awsbootstrap \
+    --query "Exports[?starts_with(Name,'InstanceEndpoint')].Value"
+fi
