@@ -24,6 +24,9 @@ Parameters:
       permissions.
   Domain:
     Type: String
+  Certificate:
+    Type: String
+    Description: An existing ACM certificate ARN for your domain
 Resources:
   DeploymentRole:
     Type: AWS::IAM::Role
@@ -199,7 +202,7 @@ Resources:
   Staging:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/c30d34f1d51a705318171e54a4527641.template
+      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/ec2279e36c72ef332e6aa079576ecb44.template
       TimeoutInMinutes: 30
       Parameters:
         EC2InstanceType:
@@ -209,11 +212,13 @@ Resources:
         Domain:
           Ref: Domain
         SubDomain: staging
+        Certificate:
+          Ref: Certificate
   Prod:
     Type: AWS::CloudFormation::Stack
     DependsOn: Staging
     Properties:
-      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/c30d34f1d51a705318171e54a4527641.template
+      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/ec2279e36c72ef332e6aa079576ecb44.template
       TimeoutInMinutes: 30
       Parameters:
         EC2InstanceType:
@@ -223,6 +228,8 @@ Resources:
         Domain:
           Ref: Domain
         SubDomain: prod
+        Certificate:
+          Ref: Certificate
 Outputs:
   StagingLBEndpoint:
     Description: The DNS name for the staging LB
@@ -232,6 +239,14 @@ Outputs:
       - Outputs.LBEndpoint
     Export:
       Name: StagingLBEndpoint
+  StagingHTTPSLBEndpoint:
+    Description: The DNS name for the staging HTTPS LB
+    Value:
+      Fn::GetAtt:
+      - Staging
+      - Outputs.HTTPSEndpoint
+    Export:
+      Name: StagingHTTPSLBEndpoint
   ProdLBEndpoint:
     Description: The DNS name for the prod LB
     Value:
@@ -240,3 +255,11 @@ Outputs:
       - Outputs.LBEndpoint
     Export:
       Name: ProdLBEndpoint
+  ProdHTTPSLBEndpoint:
+    Description: The DNS name for the prod HTTPS LB
+    Value:
+      Fn::GetAtt:
+      - Prod
+      - Outputs.HTTPSEndpoint
+    Export:
+      Name: ProdHTTPSLBEndpoint
