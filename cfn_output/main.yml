@@ -3,8 +3,7 @@ Parameters:
   EC2InstanceType:
     Type: String
   EC2AMI:
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    Type: String
   CodePipelineBucket:
     Type: String
     Description: The S3 bucket for CodePipeline artifacts.
@@ -23,28 +22,9 @@ Parameters:
     NoEcho: true
     Description: A GitHub personal access token with "repo" and "admin:repo_hook"
       permissions.
+  Domain:
+    Type: String
 Resources:
-  Staging:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/5b9bb5ad25d962a5c825d34e918cfe55.template
-      TimeoutInMinutes: 30
-      Parameters:
-        EC2InstanceType:
-          Ref: EC2InstanceType
-        EC2AMI:
-          Ref: EC2AMI
-  Prod:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: Staging
-    Properties:
-      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/5b9bb5ad25d962a5c825d34e918cfe55.template
-      TimeoutInMinutes: 30
-      Parameters:
-        EC2InstanceType:
-          Ref: EC2InstanceType
-        EC2AMI:
-          Ref: EC2AMI
   DeploymentRole:
     Type: AWS::IAM::Role
     Properties:
@@ -216,6 +196,33 @@ Resources:
         - Pipeline
         - Version
       RegisterWithThirdParty: true
+  Staging:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/c30d34f1d51a705318171e54a4527641.template
+      TimeoutInMinutes: 30
+      Parameters:
+        EC2InstanceType:
+          Ref: EC2InstanceType
+        EC2AMI:
+          Ref: EC2AMI
+        Domain:
+          Ref: Domain
+        SubDomain: staging
+  Prod:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Staging
+    Properties:
+      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/c30d34f1d51a705318171e54a4527641.template
+      TimeoutInMinutes: 30
+      Parameters:
+        EC2InstanceType:
+          Ref: EC2InstanceType
+        EC2AMI:
+          Ref: EC2AMI
+        Domain:
+          Ref: Domain
+        SubDomain: prod
 Outputs:
   StagingLBEndpoint:
     Description: The DNS name for the staging LB
