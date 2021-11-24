@@ -3,7 +3,8 @@ Parameters:
   EC2InstanceType:
     Type: String
   EC2AMI:
-    Type: String
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   CodePipelineBucket:
     Type: String
     Description: The S3 bucket for CodePipeline artifacts.
@@ -202,7 +203,7 @@ Resources:
   Staging:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/ec2279e36c72ef332e6aa079576ecb44.template
+      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/be3d29a4eb79cb4ac6bac453d18fd343.template
       TimeoutInMinutes: 30
       Parameters:
         EC2InstanceType:
@@ -218,7 +219,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DependsOn: Staging
     Properties:
-      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/ec2279e36c72ef332e6aa079576ecb44.template
+      TemplateURL: https://s3.ap-south-1.amazonaws.com/awsbootstrap-cfn-701790366163/be3d29a4eb79cb4ac6bac453d18fd343.template
       TimeoutInMinutes: 30
       Parameters:
         EC2InstanceType:
